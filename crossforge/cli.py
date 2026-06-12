@@ -50,6 +50,18 @@ def _build_parser() -> argparse.ArgumentParser:
     pa.add_argument("--definition", required=True)
     pa.add_argument("--claim", required=True)
 
+    ex = sub.add_parser("explain", help="Explain a render: params + transforms per resource.")
+    ex.add_argument("--definition", required=True)
+    ex.add_argument("--composition", required=True)
+    ex.add_argument("--claim", required=True)
+
+    ra = sub.add_parser("render-all", help="Render many claims through one composition.")
+    ra.add_argument("--definition", required=True)
+    ra.add_argument("--composition", required=True)
+    ra.add_argument("--claim", action="append", required=True, dest="claims",
+                    metavar="CLAIM", help="Claim file (repeatable).")
+    ra.add_argument("--out")
+
     sub.add_parser("mcp", help="Run as an MCP server (stdio JSON-RPC).")
     return p
 
@@ -94,6 +106,35 @@ def _run_params(a) -> int:
     return 0
 
 
+def _run_explain(a) -> int:
+    from crossforge import explain
+    try:
+        res = explain(load(a.definition), load(a.composition), load(a.claim))
+    except (OSError, CrossforgeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(res, indent=2))
+    return 0
+
+
+def _run_render_all(a) -> int:
+    from crossforge import render_all
+    try:
+        claims = [load(c) for c in a.claims]
+        out = render_all(load(a.definition), load(a.composition), claims)
+    except (OSError, CrossforgeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    text = json.dumps(out, indent=2)
+    if a.out:
+        with open(a.out, "w", encoding="utf-8") as fh:
+            fh.write(text + "\n")
+        print(f"wrote {a.out}", file=sys.stderr)
+    else:
+        print(text)
+    return 0
+
+
 def _run_mcp() -> int:
     from crossforge.mcp_server import run_mcp_server
     run_mcp_server()
@@ -109,6 +150,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _run_validate(args)
     if args.command == "params":
         return _run_params(args)
+    if args.command == "explain":
+        return _run_explain(args)
+    if args.command == "render-all":
+        return _run_render_all(args)
     if args.command == "mcp":
         return _run_mcp()
     parser.print_help(sys.stderr)

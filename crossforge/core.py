@@ -219,6 +219,19 @@ def _apply_transform(value: Any, transform: Dict[str, Any]) -> Any:
         return transform.get("value") if value in (None, "") else value
     if kind == "format":
         return str(transform.get("fmt", "{}")).replace("{}", str(value))
+    if kind == "prefix":
+        return f"{transform.get('value', '')}{value}"
+    if kind == "suffix":
+        return f"{value}{transform.get('value', '')}"
+    if kind == "int":
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return transform.get("default", 0)
+    if kind == "upper":
+        return str(value).upper()
+    if kind == "lower":
+        return str(value).lower()
     return value
 
 
@@ -289,6 +302,48 @@ def render(definition: Dict[str, Any], composition: Dict[str, Any],
         rendered = _substitute(base, params, transforms)
         out.append(rendered)
     return out
+
+
+def render_all(definition: Dict[str, Any], composition: Dict[str, Any],
+               claims: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """Render many claims through one composition.
+
+    Returns {claim_name: [resources]}. A failing claim raises; use this for a
+    fleet of same-kind claims (e.g. one Database per team).
+    """
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    for claim in claims:
+        name = (claim.get("metadata", {}) or {}).get("name", f"claim-{len(out)}")
+        out[name] = render(definition, composition, claim)
+    return out
+
+
+def explain(definition: Dict[str, Any], composition: Dict[str, Any],
+            claim: Dict[str, Any]) -> Dict[str, Any]:
+    """Explain a render: resolved params + which transforms each placeholder uses."""
+    params = resolve_params(definition, claim)
+    comp_spec = composition.get("spec", composition)
+    usage: List[Dict[str, Any]] = []
+    for entry in comp_spec.get("resources", []) or []:
+        base = entry.get("base", entry)
+        kind = base.get("kind", "?")
+        refs: List[str] = []
+
+        def scan(node):
+            if isinstance(node, dict):
+                for v in node.values():
+                    scan(v)
+            elif isinstance(node, list):
+                for v in node:
+                    scan(v)
+            elif isinstance(node, str):
+                for m in _PLACEHOLDER.finditer(node):
+                    refs.append(m.group(1).strip())
+        scan(base)
+        usage.append({"kind": kind, "placeholders": sorted(set(refs))})
+    return {"params": {k: v for k, v in params.items() if k != "__name__"},
+            "claim_name": params.get("__name__"),
+            "resources": usage}
 
 
 def validate_composition(definition: Dict[str, Any],
