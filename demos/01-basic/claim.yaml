@@ -1,0 +1,9 @@
+# A developer's high-level request — no low-level Kubernetes knowledge needed.
+kind: Database
+metadata:
+  name: orders
+spec:
+  parameters:
+    engine: postgres
+    size: medium
+    storageGi: 50

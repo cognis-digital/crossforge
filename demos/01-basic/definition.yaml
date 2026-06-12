@@ -1,0 +1,13 @@
+# Declares the high-level "Database" claim API and its parameters.
+kind: ClaimDefinition
+spec:
+  claimKind: Database
+  parameters:
+    engine:
+      enum: [postgres, mysql]
+      required: true
+    size:
+      enum: [small, medium, large]
+      default: small
+    storageGi:
+      default: 10

@@ -1,0 +1,40 @@
+# Maps Database claim parameters onto concrete Kubernetes resources.
+kind: Composition
+spec:
+  transforms:
+    sizeToCpu:
+      type: map
+      map:
+        small: "250m"
+        medium: "500m"
+        large: "2"
+      default: "250m"
+    imageForEngine:
+      type: map
+      map:
+        postgres: "localhost:5000/postgres:16"
+        mysql: "localhost:5000/mysql:8"
+  resources:
+    - base:
+        apiVersion: apps/v1
+        kind: StatefulSet
+        metadata:
+          name: ${__name__}-db
+        spec:
+          template:
+            spec:
+              containers:
+                - name: db
+                  image: ${engine | imageForEngine}
+                  resources:
+                    requests:
+                      cpu: ${size | sizeToCpu}
+    - base:
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: ${__name__}-data
+        spec:
+          resources:
+            requests:
+              storage: ${storageGi}
