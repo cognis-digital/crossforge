@@ -80,3 +80,30 @@ branding.
 
 Part of the **Cognis Neural Suite** — 300+ source-available tools organized across 12 domains under the JTF MERIDIAN command structure. See the [suite on GitHub](https://github.com/cognis-digital) and [jtf-meridian](https://github.com/cognis-digital/jtf-meridian) for how the pieces fit together.
 <!-- cognis:domains:end -->
+
+## Usage — step by step
+
+`crossforge` renders a high-level **claim** through a **composition** into the concrete Kubernetes resources that satisfy it — three documents, no control plane.
+
+1. **Install** (pure stdlib, Python 3.10+):
+   ```bash
+   pip install "git+https://github.com/cognis-digital/crossforge.git"
+   ```
+2. **Validate** that your composition matches the definition's parameters before rendering (exits non-zero on problems):
+   ```bash
+   crossforge validate --definition def.yaml --composition comp.yaml
+   ```
+3. **Inspect resolved params** for a claim (defaults + overrides applied):
+   ```bash
+   crossforge params --definition def.yaml --claim claim.yaml
+   ```
+4. **Render** the claim into resources (write with `--out`), or `explain` to see the params + transforms applied per resource:
+   ```bash
+   crossforge render  --definition def.yaml --composition comp.yaml --claim claim.yaml --out out.yaml
+   crossforge explain --definition def.yaml --composition comp.yaml --claim claim.yaml
+   ```
+5. **Automate** — render many claims through one composition in CI:
+   ```bash
+   crossforge render-all --definition def.yaml --composition comp.yaml --claim a.yaml --claim b.yaml --out rendered.yaml
+   ```
+   Or run it as a local MCP server (stdio JSON-RPC): `crossforge mcp`.
