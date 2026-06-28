@@ -1,0 +1,20 @@
+$ crossforge-emit --help
+
+usage: crossforge [-h] [--version]
+                  {render,validate,params,explain,render-all,mcp} ...
+
+Composition rendering — expand a high-level claim into the concrete Kubernetes
+resources that satisfy it.
+
+positional arguments:
+  {render,validate,params,explain,render-all,mcp}
+    render              Render a claim through a composition.
+    validate            Lint a composition against a definition.
+    params              Show resolved params for a claim.
+    explain             Explain a render: params + transforms per resource.
+    render-all          Render many claims through one composition.
+    mcp                 Run as an MCP server (stdio JSON-RPC).
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit

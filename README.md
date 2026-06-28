@@ -8,6 +8,63 @@ Part of the **Cognis Neural Suite**.
 
 ---
 
+
+<!-- cognis:example:start -->
+## 🔎 Example output
+
+Real, reproducible output from the tool — runs offline:
+
+```console
+$ crossforge-emit --version
+crossforge 0.1.0
+```
+
+```console
+$ crossforge-emit --help
+usage: crossforge [-h] [--version]
+                  {render,validate,params,explain,render-all,mcp} ...
+
+Composition rendering — expand a high-level claim into the concrete Kubernetes
+resources that satisfy it.
+
+positional arguments:
+  {render,validate,params,explain,render-all,mcp}
+    render              Render a claim through a composition.
+    validate            Lint a composition against a definition.
+    params              Show resolved params for a claim.
+    explain             Explain a render: params + transforms per resource.
+    render-all          Render many claims through one composition.
+    mcp                 Run as an MCP server (stdio JSON-RPC).
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+```
+
+> Blocks above are real `crossforge` output — reproduce them from a clone.
+
+**Sample result format** _(illustrative values — run on your own data for real findings):_
+
+```
+{
+  "timestamp": "2023-02-15T14:30:00Z",
+  "findings": [
+    {
+      "id": "1234567890",
+      "title": "Suspicious Network Traffic",
+      "description": "Network traffic from unknown IP address to a known malicious server.",
+      "labels": ["network", "suspicious"],
+      "indicators": [
+        {"type": "ip", "value": "192.168.1.100"},
+        {"type": "domain", "value": "example.com"}
+      ]
+    }
+  ]
+}
+```
+
+<!-- cognis:example:end -->
+
 ## Why
 
 Platform teams increasingly hand developers a simple, self-service API
